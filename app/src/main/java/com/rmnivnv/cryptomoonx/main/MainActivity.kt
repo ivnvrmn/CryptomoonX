@@ -1,22 +1,33 @@
 package com.rmnivnv.cryptomoonx.main
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
-import com.rmnivnv.cryptomoonx.COLOR_PRIMARY_DARK
+import androidx.fragment.app.Fragment
+import com.rmnivnv.cryptomoonx.favorites.FavoritesFragment
+import com.rmnivnv.cryptomoonx.top.TopFragment
 import com.rmnivnv.cryptomoonx.views.BottomNavigationView
 
 private const val ID_BOTTOM_NAVIGATION = 1
 private const val ID_CONTAINER = 2
 
-class MainActivity : AppCompatActivity(), BottomNavigationView.OnPositionChangeListener {
+private const val TAG_TOP = "tagTop"
+private const val TAG_FAVORITES = "tagFavorites"
+
+class MainActivity : AppCompatActivity(),
+    BottomNavigationView.OnPositionChangeListener,
+    MainContract.View {
+
+    private val presenter: MainContract.Presenter by lazy { MainPresenter(this) }
+    private val fragmentTop: Fragment by lazy { TopFragment() }
+    private val fragmentFavorites: Fragment by lazy { FavoritesFragment() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(resolveView())
+        presenter.onCreate()
     }
 
     private fun resolveView(): View {
@@ -33,7 +44,6 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnPositionChangeL
         }
         mainLayout.addView(bottomNavigationView)
         val container = FrameLayout(this).apply {
-            setBackgroundColor(COLOR_PRIMARY_DARK)
             layoutParams = RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT,
                 RelativeLayout.LayoutParams.MATCH_PARENT
@@ -48,6 +58,32 @@ class MainActivity : AppCompatActivity(), BottomNavigationView.OnPositionChangeL
     }
 
     override fun onPositionChanged(position: BottomNavigationView.Position) {
-        Log.d("onPositionChanged", "position = ${position.name}")
+        presenter.onPositionChanged(position)
+    }
+
+    override fun showTop() {
+        replaceFragment(TAG_TOP, fragmentTop)
+    }
+
+    override fun showFavorites() {
+        replaceFragment(TAG_FAVORITES, fragmentFavorites)
+    }
+
+    override fun showNews() {
+
+    }
+
+    override fun showSettings() {
+
+    }
+
+    private fun replaceFragment(tag: String, fragment: Fragment) {
+        supportFragmentManager.findFragmentByTag(tag)?.also {
+            supportFragmentManager.beginTransaction()
+                .show(it)
+                .commit()
+        } ?: supportFragmentManager.beginTransaction()
+            .replace(ID_CONTAINER, fragment, tag)
+            .commit()
     }
 }

@@ -13,10 +13,9 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import androidx.core.animation.doOnEnd
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import com.rmnivnv.cryptomoonx.COLOR_PRIMARY
-import com.rmnivnv.cryptomoonx.COLOR_WHITE
 import com.rmnivnv.cryptomoonx.R
 import com.rmnivnv.cryptomoonx.extensions.dpToPx
 
@@ -52,9 +51,12 @@ class BottomNavigationView
     private val iconNews = VectorDrawableCompat.create(resources, R.drawable.ic_message_white_24dp, null)
     private val iconSettings = VectorDrawableCompat.create(resources, R.drawable.ic_settings_white_24dp, null)
 
-    private val colorFilterSelectedIcon = PorterDuffColorFilter(COLOR_WHITE, PorterDuff.Mode.SRC_IN)
+    private val colorWhite = ContextCompat.getColor(context, R.color.white)
+    private val colorPrimary = ContextCompat.getColor(context, R.color.color_primary)
+
+    private val colorFilterSelectedIcon = PorterDuffColorFilter(colorWhite, PorterDuff.Mode.SRC_IN)
     private val colorFilterUnselectedIcon = PorterDuffColorFilter(
-        ColorUtils.setAlphaComponent(COLOR_WHITE, UNSELECTED_ICON_ALPHA),
+        ColorUtils.setAlphaComponent(colorWhite, UNSELECTED_ICON_ALPHA),
         PorterDuff.Mode.SRC_IN
     )
 
@@ -140,7 +142,7 @@ class BottomNavigationView
     }
 
     init {
-        setBackgroundColor(COLOR_PRIMARY)
+        setBackgroundColor(colorPrimary)
     }
 
     fun setListener(listener: OnPositionChangeListener) {
@@ -248,13 +250,13 @@ class BottomNavigationView
                 isClicked -> {
                     val alpha = if (alphaUpValue != 0) alphaUpValue else UNSELECTED_ICON_ALPHA
                     PorterDuffColorFilter(
-                        ColorUtils.setAlphaComponent(COLOR_WHITE, alpha),
+                        ColorUtils.setAlphaComponent(colorWhite, alpha),
                         PorterDuff.Mode.SRC_IN
                     )
                 }
                 isSelected -> colorFilterSelectedIcon
                 isDeselected -> PorterDuffColorFilter(
-                    ColorUtils.setAlphaComponent(COLOR_WHITE, alphaDownValue),
+                    ColorUtils.setAlphaComponent(colorWhite, alphaDownValue),
                     PorterDuff.Mode.SRC_IN
                 )
                 else -> colorFilterUnselectedIcon
