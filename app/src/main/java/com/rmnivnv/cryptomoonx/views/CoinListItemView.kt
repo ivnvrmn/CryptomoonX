@@ -1,12 +1,16 @@
 package com.rmnivnv.cryptomoonx.views
 
+import android.animation.PropertyValuesHolder
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.content.ContextCompat
 import com.rmnivnv.cryptomoonx.R
 import com.rmnivnv.cryptomoonx.extensions.dpToPx
@@ -20,6 +24,7 @@ class CoinListItemView
 ) : View(context, attrs, defStyleAttr) {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val matrixCustom = Matrix()
     private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.LEFT }
 
     private val colorText = ContextCompat.getColor(context, R.color.text_color)
@@ -41,6 +46,27 @@ class CoinListItemView
     private val titleTextXPosition = (marginInPx + logoSizePx + marginInPx).toFloat()
     private val separatorLineWidth = SEPARATOR_LINE_WIDTH_DP.dpToPx(resources).toFloat()
 
+    private var logoAppearanceValue = -logoSizePx.toFloat()
+    private var logoRotateValue = 0f
+
+    private lateinit var holderIconRotate: PropertyValuesHolder
+    private val holderIconAppearance = PropertyValuesHolder.ofFloat(
+        PROPERTY_ICON_APPEARANCE,
+        -logoSizePx.toFloat(),
+        marginInPx.toFloat()
+    )
+
+    private val logoAppearanceAnimator = ValueAnimator().apply {
+        interpolator = AccelerateDecelerateInterpolator()
+        addUpdateListener { animation ->
+            logoAppearanceValue = animation.getAnimatedValue(PROPERTY_ICON_APPEARANCE) as Float
+            logoRotateValue = animation.getAnimatedValue(PROPERTY_ICON_ROTATE) as Float
+
+            invalidate()
+        }
+    }
+
+
     fun setData(
         title: String,
         price: String,
@@ -58,7 +84,9 @@ class CoinListItemView
     fun setLogo(logo: Bitmap) {
         logoBitmap = logo
 
-        invalidate()
+        holderIconRotate = PropertyValuesHolder.ofFloat(PROPERTY_ICON_ROTATE, generateIconRotateAngle(), 0f)
+        logoAppearanceAnimator.setValues(holderIconRotate, holderIconAppearance)
+        logoAppearanceAnimator.start()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -73,6 +101,14 @@ class CoinListItemView
         drawTitle(canvas)
         drawPrice(canvas)
         drawPercent(canvas)
+    }
+
+    private fun drawLogo(canvas: Canvas) {
+        logoBitmap?.also {
+            matrixCustom.setTranslate(logoAppearanceValue, marginInPx.toFloat())
+            matrixCustom.postRotate(logoRotateValue, logoAppearanceValue + (logoSizePx / 2), (marginInPx + (logoSizePx / 2)).toFloat())
+            canvas.drawBitmap(it, matrixCustom, null)
+        }
     }
 
     private fun drawSeparatorLine(canvas: Canvas) {
@@ -133,11 +169,7 @@ class CoinListItemView
         textSize = textSizeTitle
     }
 
-    private fun drawLogo(canvas: Canvas) {
-        logoBitmap?.also {
-            canvas.drawBitmap(it, marginInPx.toFloat(), marginInPx.toFloat(), null)
-        }
-    }
+    private fun generateIconRotateAngle() = (-180..180).random().toFloat()
 
     companion object {
         const val LOGO_SIZE_DP = 48f
@@ -148,5 +180,8 @@ class CoinListItemView
         private const val TEXT_SIZE_TITLE_SP = 18f
         private const val TEXT_SIZE_PRICE_SP = 24f
         private const val SEPARATOR_LINE_WIDTH_DP = 1f
+
+        private const val PROPERTY_ICON_ROTATE = "propertyIconRotate"
+        private const val PROPERTY_ICON_APPEARANCE = "propertyIconAppearance"
     }
 }

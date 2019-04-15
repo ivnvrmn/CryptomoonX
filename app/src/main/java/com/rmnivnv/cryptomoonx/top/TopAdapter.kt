@@ -2,7 +2,6 @@ package com.rmnivnv.cryptomoonx.top
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -35,16 +34,13 @@ class TopAdapter : RecyclerView.Adapter<TopAdapter.ViewHolder>() {
         private val coinListItemView: CoinListItemView = itemView as CoinListItemView
         private val target = object : Target {
             override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
-                Log.d("loadLogo", "onPrepareLoad")
             }
 
             override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
-                Log.d("loadLogo", "onBitmapFailed")
                 //todo show errorStub
             }
 
             override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                Log.d("loadLogo", "onBitmapLoaded")
                 bitmap?.also {
                     coinListItemView.setLogo(it)
                 }
