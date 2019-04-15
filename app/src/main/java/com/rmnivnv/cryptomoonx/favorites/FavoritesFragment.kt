@@ -12,7 +12,7 @@ import com.rmnivnv.cryptomoonx.R
 class FavoritesFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val frameLayout = FrameLayout(context).apply {
+        val frameLayout = FrameLayout(context!!).apply {
             setBackgroundColor(ContextCompat.getColor(context, R.color.green))
         }
         return frameLayout
