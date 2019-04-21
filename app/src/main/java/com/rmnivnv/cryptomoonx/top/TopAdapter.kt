@@ -15,6 +15,7 @@ import com.squareup.picasso.Target
 class TopAdapter : RecyclerView.Adapter<TopAdapter.ViewHolder>() {
 
     var coins: List<TopCoinViewEntity> = listOf()
+    var listener: (TopCoinViewEntity) -> Unit = {}
 
     private val circleTransform = CircleTransform()
     private var iconSize: Int = 0
@@ -48,7 +49,11 @@ class TopAdapter : RecyclerView.Adapter<TopAdapter.ViewHolder>() {
         }
 
         fun bind(coin: TopCoinViewEntity) = with(coin) {
-            coinListItemView.setData(title, price, changePercent, isPositive)
+            coinListItemView.setData(title, price, changePercent, isPositive, isClicked)
+            coinListItemView.setOnClickListener {
+                listener(this)
+                coinListItemView.onClicked()
+            }
 
             Picasso.get()
                 .load(coin.logoUrl)

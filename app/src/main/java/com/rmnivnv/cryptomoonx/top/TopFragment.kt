@@ -21,6 +21,9 @@ class TopFragment : Fragment() {
             }
             val adapter = TopAdapter().apply {
                 coins = mockTopList
+                listener = {
+
+                }
             }
             recyclerView.adapter = adapter
 

@@ -5,5 +5,6 @@ data class TopCoinViewEntity(
     val price: String,
     val changePercent: String,
     val logoUrl: String,
-    val isPositive: Boolean
+    val isPositive: Boolean,
+    var isClicked: Boolean = false
 )

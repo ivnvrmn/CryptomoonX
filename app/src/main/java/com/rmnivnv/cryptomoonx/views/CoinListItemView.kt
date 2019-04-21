@@ -1,5 +1,6 @@
 package com.rmnivnv.cryptomoonx.views
 
+import android.animation.AnimatorSet
 import android.animation.PropertyValuesHolder
 import android.animation.ValueAnimator
 import android.content.Context
@@ -11,6 +12,7 @@ import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.AccelerateInterpolator
 import androidx.core.content.ContextCompat
 import com.rmnivnv.cryptomoonx.R
 import com.rmnivnv.cryptomoonx.extensions.dpToPx
@@ -32,6 +34,7 @@ class CoinListItemView
     private val colorRed = ContextCompat.getColor(context, R.color.red)
     private val colorGreen = ContextCompat.getColor(context, R.color.green)
     private val textSizeTitle = TEXT_SIZE_TITLE_SP.spToPx(resources)
+    private val textSizeTitleClicked = TEXT_SIZE_TITLE_CLICKED_SP.spToPx(resources)
     private val textSizePrice = TEXT_SIZE_PRICE_SP.spToPx(resources)
 
     private var logoBitmap: Bitmap? = null
@@ -46,16 +49,21 @@ class CoinListItemView
     private val titleTextXPosition = (marginInPx + logoSizePx + marginInPx).toFloat()
     private val separatorLineWidth = SEPARATOR_LINE_WIDTH_DP.dpToPx(resources).toFloat()
 
-    private var logoAppearanceValue = -logoSizePx.toFloat()
-    private var logoRotateValue = 0f
+    private var percentPositionY = 0f
+    private var titlePositionYClicked = 0f
+    private var pricePositionYClicked = 0f
+
+    private var isClicked = false
+    private var onClickAnimatorSet = AnimatorSet()
 
     private lateinit var holderIconRotate: PropertyValuesHolder
+    private var logoRotateValue = 0f
+    private var logoAppearanceValue = -logoSizePx.toFloat()
     private val holderIconAppearance = PropertyValuesHolder.ofFloat(
         PROPERTY_ICON_APPEARANCE,
         -logoSizePx.toFloat(),
         marginInPx.toFloat()
     )
-
     private val logoAppearanceAnimator = ValueAnimator().apply {
         interpolator = AccelerateDecelerateInterpolator()
         addUpdateListener { animation ->
@@ -66,17 +74,74 @@ class CoinListItemView
         }
     }
 
+    private lateinit var titleSizeHolder: PropertyValuesHolder
+    private lateinit var titlePositionHolder: PropertyValuesHolder
+    private var titleSizeValue = textSizeTitle
+    private var titlePositionYValue = 0f
+    private val titleAnimator = ValueAnimator().apply {
+        interpolator = AccelerateDecelerateInterpolator()
+        addUpdateListener { animation ->
+            titleSizeValue = animation.getAnimatedValue(PROPERTY_TITLE_SIZE) as Float
+            titlePositionYValue = animation.getAnimatedValue(PROPERTY_TITLE_POSITION) as Float
+            logoRotateValue = animation.getAnimatedValue(PROPERTY_ICON_ROTATE) as Float
+
+            invalidate()
+        }
+    }
+
+    private lateinit var pricePositionHolder: PropertyValuesHolder
+    private lateinit var percentPositionHolder: PropertyValuesHolder
+    private lateinit var alphaTextHolder: PropertyValuesHolder
+    private var pricePositionYValue = 0f
+    private var percentPositionXValue = 0f
+    private var alphaTextValue = 255
+    private val hidePriceAnimator = ValueAnimator().apply {
+        interpolator = AccelerateInterpolator()
+        addUpdateListener { animation ->
+            pricePositionYValue = animation.getAnimatedValue(PROPERTY_PRICE_POSITION) as Float
+            percentPositionXValue = animation.getAnimatedValue(PROPERTY_PERCENT_POSITION) as Float
+            alphaTextValue = animation.getAnimatedValue(PROPERTY_TEXT_ALPHA) as Int
+        }
+    }
+
+    init {
+        background = ContextCompat.getDrawable(context, R.drawable.ripple)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val height = VIEW_HEIGHT_DP.dpToPx(resources)
+
+        titlePositionYValue = (height / 2 - marginTextInPx).toFloat()
+        titlePositionYClicked = (height / 2 + marginTextInPx).toFloat()
+        pricePositionYValue = height / 2 + textSizeTitle
+        pricePositionYClicked = height + textSizePrice
+        percentPositionY = height / 2 + textSizeTitle
+
+        setMeasuredDimension(width, height)
+    }
 
     fun setData(
         title: String,
         price: String,
         percent: String,
-        isPositive: Boolean
+        isPositive: Boolean,
+        isClicked: Boolean
     ) {
         this.title = title
         this.price = price
         this.percent = percent
         this.isPositivePercent = isPositive
+
+        titlePositionYValue = if (isClicked) {
+            (height / 2 + marginTextInPx).toFloat()
+        } else {
+            (height / 2 - marginTextInPx).toFloat()
+        }
+        titleSizeValue = if (isClicked) textSizeTitleClicked else textSizeTitle
+        pricePositionYValue = if (isClicked) pricePositionYClicked else height / 2 + textSizeTitle
+        percentPositionXValue = if (isClicked) 300f else 0f
+        alphaTextValue = if (isClicked) ALPHA_INVISIBLE else ALPHA_VISIBLE
 
         invalidate()
     }
@@ -89,10 +154,63 @@ class CoinListItemView
         logoAppearanceAnimator.start()
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = MeasureSpec.getSize(widthMeasureSpec)
-        val height = VIEW_HEIGHT_DP.dpToPx(resources)
-        setMeasuredDimension(width, height)
+    fun onClicked() {
+        if (onClickAnimatorSet.isRunning) {
+            return
+        }
+
+        if (isClicked) {
+            isClicked = false
+            startOnClickAnimation()
+        } else {
+            isClicked = true
+            startOnClickAnimation()
+        }
+    }
+
+    private fun startOnClickAnimation() {
+        titleSizeHolder = PropertyValuesHolder.ofFloat(
+            PROPERTY_TITLE_SIZE,
+            if (isClicked) textSizeTitle else textSizeTitleClicked,
+            if (isClicked) textSizeTitleClicked else textSizeTitle
+        )
+        titlePositionHolder = PropertyValuesHolder.ofFloat(
+            PROPERTY_TITLE_POSITION,
+            if (isClicked) titlePositionYValue else titlePositionYClicked,
+            if (isClicked) titlePositionYClicked else (height / 2 - marginTextInPx).toFloat()
+        )
+        pricePositionHolder = PropertyValuesHolder.ofFloat(
+            PROPERTY_PRICE_POSITION,
+            if (isClicked) pricePositionYValue else pricePositionYClicked,
+            if (isClicked) pricePositionYClicked else height / 2 + textSizeTitle
+        )
+        percentPositionHolder = PropertyValuesHolder.ofFloat(
+            PROPERTY_PERCENT_POSITION,
+            if (isClicked) 0f else 300f,
+            if (isClicked) 300f else 0f
+        )
+        alphaTextHolder = PropertyValuesHolder.ofInt(
+            PROPERTY_TEXT_ALPHA,
+            if (isClicked) ALPHA_VISIBLE else ALPHA_INVISIBLE,
+            if (isClicked) ALPHA_INVISIBLE else ALPHA_VISIBLE
+        )
+        holderIconRotate = PropertyValuesHolder.ofFloat(
+            PROPERTY_ICON_ROTATE,
+            if (isClicked) 0f else 360f,
+            if (isClicked) 360f else 0f
+        )
+
+        titleAnimator.setValues(titleSizeHolder, titlePositionHolder, holderIconRotate)
+        hidePriceAnimator.apply {
+            interpolator = if (isClicked) AccelerateInterpolator() else AccelerateDecelerateInterpolator()
+            setValues(pricePositionHolder, percentPositionHolder, alphaTextHolder)
+        }
+
+        onClickAnimatorSet = AnimatorSet().apply {
+            duration = DURATION_CLICK_ANIMATION
+            playTogether(titleAnimator, hidePriceAnimator)
+            start()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -125,48 +243,44 @@ class CoinListItemView
     private fun drawTitle(canvas: Canvas) {
         title?.also {
             setTextPaintToDrawTitle()
-            val y = height / 2 - marginTextInPx
-            canvas.drawText(it, titleTextXPosition, y.toFloat(), textPaint)
+            canvas.drawText(it, titleTextXPosition, titlePositionYValue, textPaint)
         }
     }
 
     private fun setTextPaintToDrawTitle() = with(textPaint) {
         color = colorText
-        textSize = textSizeTitle
+        textSize = titleSizeValue
+        alpha = ALPHA_VISIBLE
     }
 
     private fun drawPrice(canvas: Canvas) {
         price?.also {
             setTextPaintToDrawPrice()
-            val y = height / 2 + textSizeTitle
-            canvas.drawText(it, titleTextXPosition, y, textPaint)
+            canvas.drawText(it, titleTextXPosition, pricePositionYValue, textPaint)
         }
     }
 
     private fun setTextPaintToDrawPrice() = with(textPaint) {
         color = colorText
         textSize = textSizePrice
+        alpha = alphaTextValue
     }
 
     private fun drawPercent(canvas: Canvas) {
         percent?.also {
-            drawPercentText(canvas, it)
+            setTextPaintToDrawPercent()
+            val percentTextWidth = textPaint.measureText(it)
+            val x = width - marginInPx - percentTextWidth + percentPositionXValue
+            canvas.drawText(it, x, percentPositionY, textPaint)
         }
     }
 
     private fun getPercentColor(): Int = if (isPositivePercent) colorGreen else colorRed
 
-    private fun drawPercentText(canvas: Canvas, text: String) {
-        setTextPaintToDrawPercent()
-        val percentTextWidth = textPaint.measureText(text)
-        val x = width - marginInPx - percentTextWidth
-        val y = height / 2 + textSizeTitle
-        canvas.drawText(text, x, y, textPaint)
-    }
-
     private fun setTextPaintToDrawPercent() = with(textPaint) {
         color = getPercentColor()
         textSize = textSizeTitle
+        alpha = alphaTextValue
     }
 
     private fun generateIconRotateAngle() = (-180..180).random().toFloat()
@@ -178,10 +292,20 @@ class CoinListItemView
         private const val MARGIN_DP = 16f
         private const val MARGIN_TEXT_DP = 8f
         private const val TEXT_SIZE_TITLE_SP = 18f
+        private const val TEXT_SIZE_TITLE_CLICKED_SP = 30f
         private const val TEXT_SIZE_PRICE_SP = 24f
         private const val SEPARATOR_LINE_WIDTH_DP = 1f
+        private const val ALPHA_VISIBLE = 255
+        private const val ALPHA_INVISIBLE = 0
+
+        private const val DURATION_CLICK_ANIMATION = 200L
 
         private const val PROPERTY_ICON_ROTATE = "propertyIconRotate"
         private const val PROPERTY_ICON_APPEARANCE = "propertyIconAppearance"
+        private const val PROPERTY_TITLE_SIZE = "propertyTitleSize"
+        private const val PROPERTY_TITLE_POSITION = "propertyTitlePosition"
+        private const val PROPERTY_PRICE_POSITION = "propertyPricePosition"
+        private const val PROPERTY_PERCENT_POSITION = "propertyPercentPosition"
+        private const val PROPERTY_TEXT_ALPHA = "propertyTextAlpha"
     }
 }
