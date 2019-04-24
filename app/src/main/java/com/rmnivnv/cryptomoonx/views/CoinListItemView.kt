@@ -13,6 +13,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
 import com.rmnivnv.cryptomoonx.R
 import com.rmnivnv.cryptomoonx.extensions.dpToPx
@@ -146,12 +147,14 @@ class CoinListItemView
         invalidate()
     }
 
-    fun setLogo(logo: Bitmap) {
+    fun setLogo(logo: Bitmap?) {
         logoBitmap = logo
 
-        holderIconRotate = PropertyValuesHolder.ofFloat(PROPERTY_ICON_ROTATE, generateIconRotateAngle(), 0f)
-        logoAppearanceAnimator.setValues(holderIconRotate, holderIconAppearance)
-        logoAppearanceAnimator.start()
+        logo?.also {
+            holderIconRotate = PropertyValuesHolder.ofFloat(PROPERTY_ICON_ROTATE, generateIconRotateAngle(), 0f)
+            logoAppearanceAnimator.setValues(holderIconRotate, holderIconAppearance)
+            logoAppearanceAnimator.start()
+        } ?: invalidate()
     }
 
     fun onClicked() {
@@ -202,7 +205,7 @@ class CoinListItemView
 
         titleAnimator.setValues(titleSizeHolder, titlePositionHolder, holderIconRotate)
         hidePriceAnimator.apply {
-            interpolator = if (isClicked) AccelerateInterpolator() else AccelerateDecelerateInterpolator()
+            interpolator = if (isClicked) AccelerateInterpolator() else DecelerateInterpolator()
             setValues(pricePositionHolder, percentPositionHolder, alphaTextHolder)
         }
 

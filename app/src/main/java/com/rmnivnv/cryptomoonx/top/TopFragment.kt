@@ -10,31 +10,50 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.rmnivnv.cryptomoonx.R
-import com.rmnivnv.cryptomoonx.mockTopList
+import com.rmnivnv.cryptomoonx.model.view.TopCoinViewEntity
+import com.rmnivnv.cryptomoonx.network.ApiFactory
 
-class TopFragment : Fragment() {
+class TopFragment : Fragment(), TopContract.View {
+
+    private val presenter: TopContract.Presenter by lazy { createPresenter() }
+    private lateinit var topAdapter: TopAdapter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        context?.also {
+        return context?.let {
+            topAdapter = TopAdapter()
             val recyclerView = RecyclerView(it).apply {
                 layoutManager = LinearLayoutManager(it, RecyclerView.VERTICAL, false)
+                adapter = topAdapter
             }
-            val adapter = TopAdapter().apply {
-                coins = mockTopList
-                listener = {
 
-                }
-            }
-            recyclerView.adapter = adapter
-
-            val frameLayout = FrameLayout(it).apply {
+            FrameLayout(it).apply {
                 setBackgroundColor(ContextCompat.getColor(context, R.color.color_primary_dark))
+                addView(recyclerView)
             }
-
-            frameLayout.addView(recyclerView)
-
-            return frameLayout
         }
-        return null
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        presenter.onViewCreated()
+    }
+
+    override fun onDestroy() {
+        presenter.onDestroy()
+        super.onDestroy()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("test", "go")
+    }
+
+    override fun showCoins(newCoins: List<TopCoinViewEntity>) = with(topAdapter) {
+        coins = newCoins
+        notifyDataSetChanged()
+    }
+
+    private fun createPresenter(): TopContract.Presenter {
+        return TopPresenter(this, TopRepository(ApiFactory.cryptoCompareApi))
     }
 }

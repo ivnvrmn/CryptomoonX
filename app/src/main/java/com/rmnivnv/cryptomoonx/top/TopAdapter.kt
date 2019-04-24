@@ -49,10 +49,13 @@ class TopAdapter : RecyclerView.Adapter<TopAdapter.ViewHolder>() {
         }
 
         fun bind(coin: TopCoinViewEntity) = with(coin) {
-            coinListItemView.setData(title, price, changePercent, isPositive, isClicked)
-            coinListItemView.setOnClickListener {
-                listener(this)
-                coinListItemView.onClicked()
+            coinListItemView.apply {
+                setData(title, price, changePercent, isPositive, isClicked)
+                setOnClickListener {
+                    listener(coin)
+                    coinListItemView.onClicked()
+                }
+                setLogo(null)
             }
 
             Picasso.get()
