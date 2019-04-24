@@ -43,11 +43,6 @@ class TopFragment : Fragment(), TopContract.View {
         super.onDestroy()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putString("test", "go")
-    }
-
     override fun showCoins(newCoins: List<TopCoinViewEntity>) = with(topAdapter) {
         coins = newCoins
         notifyDataSetChanged()

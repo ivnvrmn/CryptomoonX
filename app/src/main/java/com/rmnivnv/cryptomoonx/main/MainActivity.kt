@@ -62,11 +62,11 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun showTop() {
-        replaceFragment(TAG_TOP, fragmentTop)
+        showFragment(fragmentTop, TAG_TOP, fragmentFavorites)
     }
 
     override fun showFavorites() {
-        replaceFragment(TAG_FAVORITES, fragmentFavorites)
+        showFragment(fragmentFavorites, TAG_FAVORITES, fragmentTop)
     }
 
     override fun showNews() {
@@ -77,13 +77,19 @@ class MainActivity : AppCompatActivity(),
 
     }
 
-    private fun replaceFragment(tag: String, fragment: Fragment) {
-        supportFragmentManager.findFragmentByTag(tag)?.also {
-            supportFragmentManager.beginTransaction()
-                .show(it)
-                .commit()
-        } ?: supportFragmentManager.beginTransaction()
-            .replace(ID_CONTAINER, fragment, tag)
-            .commit()
+    private fun showFragment(fragmentToShow: Fragment, fragmentToShowTag: String, fragmentToHide: Fragment) {
+        supportFragmentManager.beginTransaction().apply {
+            if (fragmentToShow.isAdded) {
+                show(fragmentToShow)
+            } else {
+                add(ID_CONTAINER, fragmentToShow, fragmentToShowTag)
+            }
+
+            if (fragmentToHide.isAdded) {
+                hide(fragmentToHide)
+            }
+
+            commit()
+        }
     }
 }
