@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun showNews() {
-
+        //
     }
 
     override fun showSettings() {
