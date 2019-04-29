@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CryptomoonX</string>
+    <string name="update_time_title">Last updated:</string>
 </resources>
