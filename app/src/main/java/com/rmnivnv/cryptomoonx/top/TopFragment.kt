@@ -1,9 +1,11 @@
 package com.rmnivnv.cryptomoonx.top
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -15,21 +17,28 @@ import com.rmnivnv.cryptomoonx.network.ApiFactory
 
 class TopFragment : Fragment(), TopContract.View {
 
-    private val presenter: TopContract.Presenter by lazy { createPresenter() }
+    private val presenter: TopContract.Presenter by lazy {
+        TopPresenter(this, TopRepository(ApiFactory.cryptoCompareApi))
+    }
     private lateinit var topAdapter: TopAdapter
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return context?.let {
-            topAdapter = TopAdapter()
-            val recyclerView = RecyclerView(it).apply {
-                layoutManager = LinearLayoutManager(it, RecyclerView.VERTICAL, false)
-                adapter = topAdapter
-            }
-
+            initRecyclerView(it)
             FrameLayout(it).apply {
-                setBackgroundColor(ContextCompat.getColor(context, R.color.color_primary_dark))
+                setBackgroundColor(ContextCompat.getColor(it, R.color.color_primary_dark))
                 addView(recyclerView)
             }
+        }
+    }
+
+    private fun initRecyclerView(context: Context) {
+        topAdapter = TopAdapter()
+        recyclerView = RecyclerView(context).apply {
+            layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+            adapter = topAdapter
+            layoutAnimation = AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_from_bottom)
         }
     }
 
@@ -46,9 +55,6 @@ class TopFragment : Fragment(), TopContract.View {
     override fun showCoins(newCoins: List<TopCoinViewEntity>) = with(topAdapter) {
         coins = newCoins
         notifyDataSetChanged()
-    }
-
-    private fun createPresenter(): TopContract.Presenter {
-        return TopPresenter(this, TopRepository(ApiFactory.cryptoCompareApi))
+        recyclerView.scheduleLayoutAnimation()
     }
 }
