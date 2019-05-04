@@ -6,11 +6,11 @@ import com.rmnivnv.cryptomoonx.model.view.TopCoinViewEntity
 import com.rmnivnv.cryptomoonx.network.CryptocompareApi
 
 class TopRepository(
-    private val cryptocompareApi: CryptocompareApi
+    private val cryptoCompareApi: CryptocompareApi
 ): TopContract.Repository {
 
     override suspend fun getTopCoins(): List<TopCoinViewEntity>? {
-        val response = cryptocompareApi.getTopCoins().await()
+        val response = cryptoCompareApi.getTopCoins().await()
         return if (response.isSuccessful) {
             response.body()?.data?.map { it.toViewEntity() }
         } else {

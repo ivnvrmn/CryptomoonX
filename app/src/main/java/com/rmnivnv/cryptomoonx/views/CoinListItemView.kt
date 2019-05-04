@@ -48,7 +48,7 @@ class CoinListItemView
     private val marginTextInPx = MARGIN_TEXT_DP.dpToPx(resources)
     private val logoSizePx = LOGO_SIZE_DP.dpToPx(resources)
     private val titleTextXPosition = (marginInPx + logoSizePx + marginInPx).toFloat()
-    private val separatorLineWidth = SEPARATOR_LINE_WIDTH_DP.dpToPx(resources).toFloat()
+    private val separatorLineWidth = resources.getDimension(R.dimen.separator_line_width)
 
     private var percentPositionY = 0f
     private var titlePositionYClicked = 0f
@@ -297,7 +297,6 @@ class CoinListItemView
         private const val TEXT_SIZE_TITLE_SP = 18f
         private const val TEXT_SIZE_TITLE_CLICKED_SP = 30f
         private const val TEXT_SIZE_PRICE_SP = 24f
-        private const val SEPARATOR_LINE_WIDTH_DP = 1f
         private const val ALPHA_VISIBLE = 255
         private const val ALPHA_INVISIBLE = 0
 

@@ -13,10 +13,9 @@ import com.rmnivnv.cryptomoonx.extensions.spToPx
 import java.text.SimpleDateFormat
 import java.util.*
 
-private const val TEXT_SIZE_SP = 14f
+private const val TEXT_SIZE_SP = 12f
 private const val VIEW_HEIGHT_DP = 24f
 private const val DATE_FULL_PATTERN = "dd MMM HH:mm:ss"
-private const val DATE_DAY_OF_MONTH_PATTERN = "dd"
 
 class UpdateTimeListItemView
 @JvmOverloads constructor(
@@ -26,17 +25,20 @@ class UpdateTimeListItemView
 ) : View(context, attrs, defStyleAttr) {
 
     private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        textAlign = Paint.Align.LEFT
+        textAlign = Paint.Align.CENTER
         color = ContextCompat.getColor(context, R.color.text_color)
         textSize = TEXT_SIZE_SP.spToPx(resources)
     }
-    private val title = context.getString(R.string.update_time_title)
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = resources.getDimension(R.dimen.separator_line_width)
+        color = ContextCompat.getColor(context, R.color.color_primary)
+    }
     private val calendar = Calendar.getInstance()
-    private val dateFullFormat = SimpleDateFormat(DATE_FULL_PATTERN, Locale.getDefault())
-    private val dateDayOfMonthFormat = SimpleDateFormat(DATE_DAY_OF_MONTH_PATTERN, Locale.getDefault())
-    private var totalTitle = ""
-    private var dayOfMonth = "0"
-    private var dayOfMonthUpdated = false
+    private val dateFullFormat = SimpleDateFormat(DATE_FULL_PATTERN, Locale.US)
+
+    private val title = context.getString(R.string.update_time_title)
+    private val margin = resources.getDimension(R.dimen.margin_default)
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
@@ -46,43 +48,22 @@ class UpdateTimeListItemView
 
     fun setUpdatedTime(time: Long) {
         calendar.timeInMillis = time
-        totalTitle = "$title ${dateFullFormat.format(calendar.time)}"
-
-        calendar.get(Calendar.DAY_OF_MONTH).also {
-            dayOfMonthUpdated = it != dayOfMonth.toInt()
-            dayOfMonth = dateDayOfMonthFormat.format(calendar.time)
-        }
-
-        calendar.get(Calendar.MONTH).also {
-
-        }
+        invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
-
+        drawText(canvas)
+        drawLine(canvas)
     }
 
-    private fun drawTitle(canvas: Canvas) {
-
+    private fun drawText(canvas: Canvas) {
+        val text = "$title ${dateFullFormat.format(calendar.time)}"
+        val x = (width / 2).toFloat()
+        val y = height - margin
+        canvas.drawText(text, x, y, textPaint)
     }
 
-    private fun drawMonthDays(canvas: Canvas) {
-
-    }
-
-    private fun drawMonth(canvas: Canvas) {
-
-    }
-
-    private fun drawHours(canvas: Canvas) {
-
-    }
-
-    private fun drawMinutes(canvas: Canvas) {
-
-    }
-
-    private fun drawSeconds(canvas: Canvas) {
-
+    private fun drawLine(canvas: Canvas) {
+        canvas.drawLine(0f, height.toFloat(), width.toFloat(), height.toFloat(), paint)
     }
 }
