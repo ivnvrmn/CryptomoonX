@@ -1,23 +1,24 @@
 package com.rmnivnv.cryptomoonx.top
 
-import com.rmnivnv.cryptomoonx.CRYPTO_COMPARE_IMAGE_URL
 import com.rmnivnv.cryptomoonx.model.api.TopCoinEntity
 import com.rmnivnv.cryptomoonx.model.view.TopCoinViewEntity
 import com.rmnivnv.cryptomoonx.network.CryptocompareApi
+
+private const val CRYPTO_COMPARE_IMAGE_URL = "https://www.cryptocompare.com/"
 
 class TopRepository(
     private val cryptoCompareApi: CryptocompareApi
 ): TopContract.Repository {
 
     override suspend fun getTopCoins(): List<TopCoinViewEntity>? {
-        val response = try {
-            cryptoCompareApi.getTopCoins().await()
+        return try {
+            val response = cryptoCompareApi.getTopCoins().await()
+            if (response.isSuccessful) {
+                response.body()?.data?.map { it.toViewEntity() }
+            } else {
+                null
+            }
         } catch (e: Exception) {
-            null
-        }
-        return if (response?.isSuccessful == true) {
-            response.body()?.data?.map { it.toViewEntity() }
-        } else {
             null
         }
     }
