@@ -10,8 +10,12 @@ class TopRepository(
 ): TopContract.Repository {
 
     override suspend fun getTopCoins(): List<TopCoinViewEntity>? {
-        val response = cryptoCompareApi.getTopCoins().await()
-        return if (response.isSuccessful) {
+        val response = try {
+            cryptoCompareApi.getTopCoins().await()
+        } catch (e: Exception) {
+            null
+        }
+        return if (response?.isSuccessful == true) {
             response.body()?.data?.map { it.toViewEntity() }
         } else {
             null

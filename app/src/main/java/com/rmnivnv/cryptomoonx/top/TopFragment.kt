@@ -36,7 +36,15 @@ class TopFragment : Fragment(), TopContract.View {
             initRecyclerView(it)
             SwipeRefreshLayout(it).apply {
                 setBackgroundColor(ContextCompat.getColor(it, R.color.color_primary_dark))
+                setProgressBackgroundColorSchemeResource(R.color.color_primary)
+                setColorSchemeColors(
+                    ContextCompat.getColor(it, R.color.white),
+                    ContextCompat.getColor(it, R.color.green),
+                    ContextCompat.getColor(it, R.color.red)
+                )
+
                 setOnRefreshListener { presenter.onRefresh() }
+
                 addView(recyclerView)
                 refreshLayout = this
             }

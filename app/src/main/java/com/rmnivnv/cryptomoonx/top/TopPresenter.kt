@@ -40,8 +40,13 @@ class TopPresenter(
                     updateTime()
                     hideRefreshAnimation()
                 }
-            }
+            } ?: onError()
         }
+    }
+
+    private fun onError() {
+        view.hideRefreshAnimation()
+        //todo show try again
     }
 
     override fun onDestroy() {
