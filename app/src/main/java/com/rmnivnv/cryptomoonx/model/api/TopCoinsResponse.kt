@@ -8,7 +8,7 @@ data class TopCoinsResponse(
     @SerializedName("Type")
     val type: Int,
     @SerializedName("SponsoredData")
-    val sponsoredData: List<String>,
+    val sponsoredData: List<TopCoinEntity>,
     @SerializedName("Data")
     val data: List<TopCoinEntity>,
     @SerializedName("HasWarning")
