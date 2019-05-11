@@ -56,6 +56,7 @@ class CoinListItemView
 
     private var isClicked = false
     private var onClickAnimatorSet = AnimatorSet()
+    private var isSlided = false
 
     private lateinit var holderIconRotate: PropertyValuesHolder
     private var logoRotateValue = 0f
@@ -95,7 +96,7 @@ class CoinListItemView
     private lateinit var alphaTextHolder: PropertyValuesHolder
     private var pricePositionYValue = 0f
     private var percentPositionXValue = 0f
-    private var alphaTextValue = 255
+    private var alphaTextValue = ALPHA_VISIBLE
     private val hidePriceAnimator = ValueAnimator().apply {
         interpolator = AccelerateInterpolator()
         addUpdateListener { animation ->
@@ -141,7 +142,7 @@ class CoinListItemView
         }
         titleSizeValue = if (isClicked) textSizeTitleClicked else textSizeTitle
         pricePositionYValue = if (isClicked) pricePositionYClicked else height / 2 + textSizeTitle
-        percentPositionXValue = if (isClicked) 300f else 0f
+        percentPositionXValue = if (isClicked) PERCENT_POSITION_X_CLICKED else PERCENT_POSITION_X
         alphaTextValue = if (isClicked) ALPHA_INVISIBLE else ALPHA_VISIBLE
 
         invalidate()
@@ -158,7 +159,9 @@ class CoinListItemView
     }
 
     fun onClicked() {
-        if (onClickAnimatorSet.isRunning) {
+        if (onClickAnimatorSet.isRunning) return
+        if (isSlided) {
+            isSlided = false
             return
         }
 
@@ -169,6 +172,37 @@ class CoinListItemView
             isClicked = true
             startOnClickAnimation()
         }
+    }
+
+    fun onSlide(slideOffset: Float) {
+        if (slideOffset.isNaN()) {
+            titleSizeValue = textSizeTitleClicked
+            titlePositionYValue = titlePositionYClicked
+            pricePositionYValue = pricePositionYClicked
+            percentPositionXValue = PERCENT_POSITION_X_CLICKED
+            alphaTextValue = ALPHA_INVISIBLE
+            logoRotateValue = ROTATE_ANGLE_CLICKED
+
+            invalidate()
+            return
+        }
+
+        titleSizeValue = textSizeTitleClicked + ((textSizeTitleClicked - textSizeTitle) * slideOffset)
+        titlePositionYValue = titlePositionYClicked +
+            ((titlePositionYClicked - (height / 2 - marginTextInPx)) * slideOffset)
+        pricePositionYValue = pricePositionYClicked +
+            ((pricePositionYClicked - (height / 2 + textSizeTitle)) * slideOffset)
+        percentPositionXValue = PERCENT_POSITION_X_CLICKED +
+            ((PERCENT_POSITION_X_CLICKED - PERCENT_POSITION_X) * slideOffset)
+        alphaTextValue = 0 - (ALPHA_VISIBLE * slideOffset).toInt()
+        logoRotateValue = ROTATE_ANGLE_CLICKED * slideOffset
+
+        if (slideOffset == -1.0f) {
+            isClicked = false
+            isSlided = true
+        }
+
+        invalidate()
     }
 
     private fun startOnClickAnimation() {
@@ -189,8 +223,8 @@ class CoinListItemView
         )
         percentPositionHolder = PropertyValuesHolder.ofFloat(
             PROPERTY_PERCENT_POSITION,
-            if (isClicked) 0f else 300f,
-            if (isClicked) 300f else 0f
+            if (isClicked) PERCENT_POSITION_X else PERCENT_POSITION_X_CLICKED,
+            if (isClicked) PERCENT_POSITION_X_CLICKED else PERCENT_POSITION_X
         )
         alphaTextHolder = PropertyValuesHolder.ofInt(
             PROPERTY_TEXT_ALPHA,
@@ -199,8 +233,8 @@ class CoinListItemView
         )
         holderIconRotate = PropertyValuesHolder.ofFloat(
             PROPERTY_ICON_ROTATE,
-            if (isClicked) 0f else 360f,
-            if (isClicked) 360f else 0f
+            if (isClicked) ROTATE_ANGLE else ROTATE_ANGLE_CLICKED,
+            if (isClicked) ROTATE_ANGLE_CLICKED else ROTATE_ANGLE
         )
 
         titleAnimator.setValues(titleSizeHolder, titlePositionHolder, holderIconRotate)
@@ -227,7 +261,9 @@ class CoinListItemView
     private fun drawLogo(canvas: Canvas) {
         logoBitmap?.also {
             matrixCustom.setTranslate(logoAppearanceValue, marginInPx.toFloat())
-            matrixCustom.postRotate(logoRotateValue, logoAppearanceValue + (logoSizePx / 2), (marginInPx + (logoSizePx / 2)).toFloat())
+            matrixCustom.postRotate(
+                logoRotateValue, logoAppearanceValue + (logoSizePx / 2), (marginInPx + (logoSizePx / 2)).toFloat()
+            )
             canvas.drawBitmap(it, matrixCustom, null)
         }
     }
@@ -299,6 +335,10 @@ class CoinListItemView
         private const val TEXT_SIZE_PRICE_SP = 24f
         private const val ALPHA_VISIBLE = 255
         private const val ALPHA_INVISIBLE = 0
+        private const val PERCENT_POSITION_X = 0f
+        private const val PERCENT_POSITION_X_CLICKED = 300f
+        private const val ROTATE_ANGLE = 0f
+        private const val ROTATE_ANGLE_CLICKED = 360f
 
         private const val DURATION_CLICK_ANIMATION = 200L
 

@@ -56,4 +56,8 @@ class TopPresenter(
     override fun onRefresh() {
         loadTopCoins()
     }
+
+    override fun onCoinClicked(coin: TopCoinViewEntity) {
+        view.showCoinInfo(coin)
+    }
 }

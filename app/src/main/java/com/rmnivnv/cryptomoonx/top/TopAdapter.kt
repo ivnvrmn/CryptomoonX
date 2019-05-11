@@ -23,6 +23,7 @@ class TopAdapter(
 
     var coins: List<TopCoinViewEntity> = listOf()
     var listener: (TopCoinViewEntity) -> Unit = {}
+    var clickedCoin: CoinListItemView? = null
 
     private val circleTransform = CircleTransform()
     private var iconSize: Int = 0
@@ -72,6 +73,7 @@ class TopAdapter(
             coinListItemView.apply {
                 setData(title, price, changePercent, isPositive, isClicked)
                 setOnClickListener {
+                    clickedCoin = this
                     listener(coin)
                     coinListItemView.onClicked()
                 }

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.rmnivnv.cryptomoonx.R
+import com.rmnivnv.cryptomoonx.coininfo.CoinInfoFragment
 import com.rmnivnv.cryptomoonx.model.PreferencesImpl
 import com.rmnivnv.cryptomoonx.model.view.TopCoinViewEntity
 import com.rmnivnv.cryptomoonx.network.ApiFactory
@@ -52,7 +53,9 @@ class TopFragment : Fragment(), TopContract.View {
     }
 
     private fun initRecyclerView(context: Context) {
-        topAdapter = TopAdapter(PreferencesImpl(context))
+        topAdapter = TopAdapter(PreferencesImpl(context)).apply {
+            listener = { presenter.onCoinClicked(it) }
+        }
         recyclerView = RecyclerView(context).apply {
             layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
             adapter = topAdapter
@@ -90,5 +93,16 @@ class TopFragment : Fragment(), TopContract.View {
 
     override fun hideRefreshAnimation() {
         refreshLayout.isRefreshing = false
+    }
+
+    override fun showCoinInfo(coin: TopCoinViewEntity) {
+        CoinInfoFragment(
+            name = coin.title,
+            price = coin.price,
+            onDismiss = { topAdapter.clickedCoin?.onClicked() },
+            onSlide = { topAdapter.clickedCoin?.onSlide(it) }
+        ).also {
+            it.show(childFragmentManager, "TAG")
+        }
     }
 }

@@ -1,80 +1,52 @@
 package com.rmnivnv.cryptomoonx.coininfo
 
-import android.animation.ValueAnimator
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MotionEvent
+import android.app.Dialog
 import android.view.View
-import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
-import android.widget.FrameLayout
-import android.widget.RelativeLayout
+import android.widget.TextView
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.rmnivnv.cryptomoonx.R
-import com.rmnivnv.cryptomoonx.extensions.dpToPx
 
-class CoinInfoFragment : Fragment() {
+class CoinInfoFragment(
+    private val name: String,
+    private val price: String,
+    private val onDismiss: () -> Unit,
+    private val onSlide: (Float) -> Unit
+) : BottomSheetDialogFragment() {
 
-    private lateinit var slideView: ViewGroup
+    private val bottomSheetBehavior = object : BottomSheetBehavior.BottomSheetCallback() {
+        override fun onStateChanged(bottomSheet: View, newState: Int) {
+            if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                dismiss()
+            }
+        }
 
-    private var slideValue = 0
-    private val slideViewAnimator = ValueAnimator().apply {
-        interpolator = AccelerateDecelerateInterpolator()
-        duration = 500
-        addUpdateListener { animation ->
-            slideValue = animation.animatedValue as Int
+        override fun onSlide(bottomSheet: View, slideOffset: Float) {
+            onSlide(slideOffset)
+        }
+    }
 
-            slideView.layoutParams = RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT,
-                slideValue
-            ).apply {
-                addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+    override fun setupDialog(dialog: Dialog, style: Int) {
+        super.setupDialog(dialog, style)
+        val contentView = View.inflate(context, R.layout.coin_info, null)
+        contentView.findViewById<TextView>(R.id.coin_name).text = name
+        contentView.findViewById<TextView>(R.id.coin_price).text = price
+        dialog.setContentView(contentView)
+
+        (contentView.parent as View).apply {
+            setBackgroundColor(ContextCompat.getColor(context!!, android.R.color.transparent))
+            (layoutParams as CoordinatorLayout.LayoutParams).behavior?.also {
+                if (it is BottomSheetBehavior<*>) {
+                    it.setBottomSheetCallback(bottomSheetBehavior)
+                }
             }
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        context?.also {
-            val mainLayout = RelativeLayout(it).apply {
-                isClickable = true
-
-                setOnTouchListener { v, event ->
-                    val y = event.y
-                    when (event.actionMasked) {
-                        MotionEvent.ACTION_MOVE -> {
-                            slideView.layoutParams = RelativeLayout.LayoutParams(
-                                RelativeLayout.LayoutParams.MATCH_PARENT,
-                                v.height - y.toInt()
-                            ).apply {
-                                addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
-                            }
-                        }
-                    }
-
-
-                    true
-                }
-            }
-            slideView = FrameLayout(it).apply {
-                layoutParams = RelativeLayout.LayoutParams(
-                    RelativeLayout.LayoutParams.MATCH_PARENT,
-                    0
-                ).apply {
-                    addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
-                }
-                setBackgroundColor(ContextCompat.getColor(context, R.color.green))
-            }
-            mainLayout.addView(slideView)
-            return mainLayout
-        }
-
-        return null
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        slideViewAnimator.setIntValues(0, 400f.dpToPx(resources))
-        slideViewAnimator.start()
+    override fun onDestroy() {
+        onDismiss()
+        super.onDestroy()
     }
 }

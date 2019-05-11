@@ -10,6 +10,7 @@ interface TopContract {
         fun showRefreshAnimation()
         fun hideRefreshAnimation()
         fun updateTime()
+        fun showCoinInfo(coin: TopCoinViewEntity)
     }
 
     interface Presenter {
@@ -17,6 +18,7 @@ interface TopContract {
         fun onViewCreated()
         fun onDestroy()
         fun onRefresh()
+        fun onCoinClicked(coin: TopCoinViewEntity)
     }
 
     interface Repository {
