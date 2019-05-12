@@ -14,11 +14,14 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.rmnivnv.cryptomoonx.R
 import com.rmnivnv.cryptomoonx.coininfo.CoinInfoFragment
+import com.rmnivnv.cryptomoonx.coininfo.CoinInfoListener
+import com.rmnivnv.cryptomoonx.coininfo.KEY_COIN_NAME
+import com.rmnivnv.cryptomoonx.coininfo.KEY_COIN_PRICE
 import com.rmnivnv.cryptomoonx.model.PreferencesImpl
 import com.rmnivnv.cryptomoonx.model.view.TopCoinViewEntity
 import com.rmnivnv.cryptomoonx.network.ApiFactory
 
-class TopFragment : Fragment(), TopContract.View {
+class TopFragment : Fragment(), TopContract.View, CoinInfoListener {
 
     private val presenter: TopContract.Presenter by lazy {
         TopPresenter(
@@ -96,13 +99,20 @@ class TopFragment : Fragment(), TopContract.View {
     }
 
     override fun showCoinInfo(coin: TopCoinViewEntity) {
-        CoinInfoFragment(
-            name = coin.title,
-            price = coin.price,
-            onDismiss = { topAdapter.clickedCoin?.onClicked() },
-            onSlide = { topAdapter.clickedCoin?.onSlide(it) }
-        ).also {
+        CoinInfoFragment().also {
+            it.arguments = Bundle().apply {
+                putString(KEY_COIN_NAME, coin.title)
+                putString(KEY_COIN_PRICE, coin.price)
+            }
             it.show(childFragmentManager, "TAG")
         }
+    }
+
+    override fun onDismiss() {
+        topAdapter.clickedCoin?.onClicked()
+    }
+
+    override fun onSlide(slideOffset: Float) {
+        topAdapter.clickedCoin?.onSlide(slideOffset)
     }
 }

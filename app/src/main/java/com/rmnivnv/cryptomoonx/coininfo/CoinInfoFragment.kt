@@ -9,12 +9,12 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.rmnivnv.cryptomoonx.R
 
-class CoinInfoFragment(
-    private val name: String,
-    private val price: String,
-    private val onDismiss: () -> Unit,
-    private val onSlide: (Float) -> Unit
-) : BottomSheetDialogFragment() {
+const val KEY_COIN_NAME = "coin_name"
+const val KEY_COIN_PRICE = "coin_price"
+
+class CoinInfoFragment : BottomSheetDialogFragment() {
+
+    private lateinit var coinInfoListener: CoinInfoListener
 
     private val bottomSheetBehavior = object : BottomSheetBehavior.BottomSheetCallback() {
         override fun onStateChanged(bottomSheet: View, newState: Int) {
@@ -24,15 +24,16 @@ class CoinInfoFragment(
         }
 
         override fun onSlide(bottomSheet: View, slideOffset: Float) {
-            onSlide(slideOffset)
+            coinInfoListener.onSlide(slideOffset)
         }
     }
 
     override fun setupDialog(dialog: Dialog, style: Int) {
         super.setupDialog(dialog, style)
-        val contentView = View.inflate(context, R.layout.coin_info, null)
-        contentView.findViewById<TextView>(R.id.coin_name).text = name
-        contentView.findViewById<TextView>(R.id.coin_price).text = price
+        val contentView = View.inflate(context, R.layout.coin_info, null).apply {
+            findViewById<TextView>(R.id.coin_name).text = arguments?.getString(KEY_COIN_NAME)
+            findViewById<TextView>(R.id.coin_price).text = arguments?.getString(KEY_COIN_PRICE)
+        }
         dialog.setContentView(contentView)
 
         (contentView.parent as View).apply {
@@ -43,10 +44,12 @@ class CoinInfoFragment(
                 }
             }
         }
+
+        coinInfoListener = parentFragment as CoinInfoListener
     }
 
     override fun onDestroy() {
-        onDismiss()
+        coinInfoListener.onDismiss()
         super.onDestroy()
     }
 }
